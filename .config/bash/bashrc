@@ -1,0 +1,47 @@
+# ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+# for examples
+
+# If not running interactively, don't do anything
+[ -z "$PS1" ] && return
+
+# If not inside tmux, attach to the main tmux session, if it doesnt exists create it
+if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
+	exec tmux new-session -A -s main
+fi
+
+# Don't put duplicate lines in the history. See bash(1) for more options
+HISTCONTROL=ignoredups:ignorespace
+
+# Colored prompt
+PS1='\[\033[01;31m\]\u\[\033[01;33m\]@\[\033[01;36m\]\h \[\033[01;33m\]\w \[\033[01;35m\]\$ \[\033[00m\]'
+
+# Append to the history file, don't overwrite it
+shopt -s histappend
+
+# For setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=100000
+HISTFILESIZE=2000000
+
+# Check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+# Make less more friendly for non-text input files, see lesspipe(1)
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+
+
+# Source external configs
+source "$XDG_CONFIG_HOME/shell/aliasrc"
+
+source /etc/bash_completion
+
+source "$XDG_DATA_HOME/cargo/env"
+
+source "$XDG_DATA_HOME/nvm/nvm.sh"
+source "$XDG_DATA_HOME/nvm/bash_completion"
+
+
+if command -v nvim &> /dev/null && [ -n "$PS1" ] && [ -z "$VIM" ]; then
+	exec nvim ~
+fi
