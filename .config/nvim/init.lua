@@ -68,6 +68,7 @@ require('packer').startup(function(use)
 		'hrsh7th/nvim-cmp',
 		'hrsh7th/cmp-nvim-lsp',
 		'hrsh7th/cmp-buffer',
+		'hrsh7th/cmp-cmdline',
 		'hrsh7th/cmp-path'
 	}
 
@@ -133,8 +134,8 @@ require('packer').startup(function(use)
 				-- your configuration comes here
 				-- or leave it empty to use the default settings
 				-- refer to the configuration section below
-				}
-			end
+			}
+		end
 	}
 end)
 
@@ -213,7 +214,7 @@ autocmd!
 " Enter Terminal-mode (insert) automatically
 autocmd TermOpen * startinsert
 " Disables number lines on terminal buffers
-autocmd TermOpen * :set nonumber norelativenumber
+autocmd TermOpen * :setlocal nonumber norelativenumber
 " allows you to use Ctrl-c on terminal window
 autocmd TermOpen * tmap <buffer> <Esc> <C-\><C-n>
 autocmd TermClose * if !get(b:, 'term_error') | bdelete | endif
@@ -262,12 +263,50 @@ local on_attach = function(client, bufnr)
 	nmap {'<leader>cwl', ':lua printvim.inspectvim.lsp.buf.list_workspace_folders()<CR>', bufnr = bufnr }
 end
 
+-- cmp setup
+local cmp = require'cmp'
+
+cmp.setup({
+	snippet = {
+		expand = function(args)
+			require('luasnip').lsp_expand(args.body)
+		end,
+	},
+	mapping = {
+		['<C-b>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), { 'i', 'c' }),
+		['<C-f>'] = cmp.mapping(cmp.mapping.scroll_docs(4), { 'i', 'c' }),
+		['<C-Space>'] = cmp.mapping(cmp.mapping.complete(), { 'i', 'c' }),
+		['<C-y>'] = cmp.config.disable, -- Specify `cmp.config.disable` if you want to remove the default `<C-y>` mapping.
+		['<C-e>'] = cmp.mapping({
+			i = cmp.mapping.abort(),
+			c = cmp.mapping.close(),
+		}),
+		['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+	},
+	sources = cmp.config.sources({
+		{ name = 'nvim_lsp' },
+		{ name = 'luasnips' },
+		{ name = 'buffer' }
+	})
+})
+
+cmp.setup.filetype('gitcommit', {
+	sources = cmp.config.sources({
+		{ name = 'cmp_git' }, -- You can specify the `cmp_git` source if you were installed it. 
+		}, {
+			{ name = 'buffer' },
+	})
+})
+
+local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+
 local runtime_path = vim.split(package.path, ';')
 table.insert(runtime_path, "lua/?.lua")
 table.insert(runtime_path, "lua/?/init.lua")
 
 require('lspconfig').rust_analyzer.setup {
 	on_attach = on_attach,
+	capabilities = capabilities,
 	flags = {
 		debounce_text_changes = 150,
 	}
@@ -275,10 +314,10 @@ require('lspconfig').rust_analyzer.setup {
 
 require('lspconfig').sumneko_lua.setup {
 	on_attach = on_attach,
+	-- capabilities = capabilities,
 	flags = {
 		debounce_text_changes = 150,
 	},
-	autostart = false,
 	settings = {
 		Lua = {
 			runtime = {
