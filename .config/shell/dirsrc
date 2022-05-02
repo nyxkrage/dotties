@@ -1,0 +1,3 @@
+export PROJECTS="$HOME/projects"
+export CONFIG="$XDG_CONFIG_HOME"
+export LOCAL_BIN="$HOME/.local/bin"
