@@ -51,6 +51,11 @@ local nmap = function(tbl)
 	keymap(tbl)
 end
 
+local vmap = function(tbl)
+	tbl['mode'] = 'v'
+	keymap(tbl)
+end
+
 local imap = function(tbl)
 	tbl['mode'] = 'i'
 	keymap(tbl)
@@ -86,7 +91,8 @@ require('packer').startup(function(use)
 			'nvim-lua/plenary.nvim'
 		},
 		{ 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' },
-		'nvim-telescope/telescope-file-browser.nvim'
+		'nvim-telescope/telescope-file-browser.nvim',
+		'~/projects/local/projects.nvim'
 	}
 
 	-- Wait, that's illegal
@@ -144,6 +150,7 @@ end)
 require('colorbuddy').colorscheme('henna')
 
 require('telescope').load_extension'file_browser'
+require('telescope').load_extension'projects'
 
 -- F: Files
 -- File Find
@@ -159,11 +166,16 @@ nmap{'<leader>fp', ':Telescope file_browser path=~/.config/nvim<CR>'}
 -- File find String
 nmap{'<leader>fs', ':lua require"telescope.builtin".live_grep()<CR>'}
 
+-- P: Projects
+-- Project find
+nmap{'<leader>pp', ':Telescope projects<CR>'}
+
 -- B: Buffers
 nmap{'<leader>bb', ':lua require"telescope.builtin".buffers()<CR>'}
 nmap{'<leader>bn', ':bnext<CR>'}
 nmap{'<leader>bp', ':bprevious<CR>'}
-nmap{'<leader>bq', ':bdelete<CR>'}
+nmap{'<leader>bd', ':bdelete<CR>'}
+nmap{'<leader>bq', ':setl bufhidden=delete | bnext!<CR>'}
 
 -- T: Terminal
 nmap{'<leader>to', ':10Term<CR>'}
@@ -181,12 +193,6 @@ nmap{'<leader>wsv', ':vsplit<CR>'}
 nmap{'<leader>wsh', ':split<CR>'}
 nmap{'<leader>wq', ':quit<CR>'}
 
--- T: Tabs
-nmap{'<leader>tt', ':tabnew<CR>'}
-nmap{'<leader>tn', ':tabnext<CR>'}
-nmap{'<leader>tp', ':tabprevious<CR>'}
-nmap{'<leader>tq', ':tabclose<CR>'}
-
 -- G: Git
 nmap{'<leader>gg', ':Neogit<CR>'}
 
@@ -199,6 +205,7 @@ nmap {'<leader>cgn', ':lua vim.diagnostic.goto_next()<CR>'}
 -- C-W: Code Workspace
 nmap {'<leader>cwt', ':TSHighlightCapturesUnderCursor<CR>'}
 nmap {'<leader>cws', ':source<CR>'}
+vmap {'<leader>cws', ":'<,'>source<CR>"}
 
 -- highlight yanked text for 200ms using the "Visual" highlight group
 vim.cmd[[
@@ -217,7 +224,7 @@ autocmd TermOpen * startinsert
 autocmd TermOpen * :setlocal nonumber norelativenumber
 " allows you to use Ctrl-c on terminal window
 autocmd TermOpen * tmap <buffer> <Esc> <C-\><C-n>
-autocmd TermClose * if !get(b:, 'term_error') | bdelete | endif
+autocmd TermClose * if !get(b:, 'term_error') | setl bufhidden=delete | bnext! | endif
 augroup END
 ]]
 
@@ -235,7 +242,7 @@ map g* <Plug>(incsearch-nohl-g*)
 map g# <Plug>(incsearch-nohl-g#)
 ]]
 
-vim.api.nvim_add_user_command('W', ':execute ":silent w !sudo tee % > /dev/null" | :edit!', {})
+vim.api.nvim_create_user_command('W', ':execute ":silent w !sudo tee % > /dev/null" | :edit!', {})
 
 -- LSP Setup
 
@@ -333,6 +340,7 @@ require('lspconfig').sumneko_lua.setup {
 			workspace = {
 				-- Make the server aware of Neovim runtime files
 				library = vim.api.nvim_get_runtime_file("", true),
+				checkThirdParty = false,
 			},
 			-- Do not send telemetry data containing a randomized but unique dentifier
 			telemetry = {
