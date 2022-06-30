@@ -1,6 +1,6 @@
 ------------------------------------------------------
--- 			This config is built using              --
--- [NightVim](https://github.com/nyxkrage/NightVim) --
+--           This config is built using             --
+-- [NightVim](https://github.com/NightVim/NightVim) --
 ------------------------------------------------------
 local plugins, lsp, color, prequire, nmap, vmap = night.prelude{'plugins', 'lsp', 'color', 'prequire', 'nmap', 'vmap' }
 
